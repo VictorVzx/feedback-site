@@ -18,21 +18,25 @@
             <div class="input-box">
                 <input type="text" id="insta" placeholder="Seu instagram (opcional)" autocomplete="off">
             </div>
-            <button class="login" type="submit">Continuar</button>
-            <p>*Clique apenas uma vez e aguarde*</p>
+            <button id="btn-enviar" class="login" type="submit">Continuar</button>
         </form>
     </main>
     <script>
         console.log("Javascript funcionando");
 
-        document.addEventListener("keydown", function (event) {
+         // Bloquear Enter
+        document.addEventListener("keydown", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
             }
         });
 
-        document.getElementById("formid").addEventListener("submit", async function (event) {
+        document.getElementById("formid").addEventListener("submit", async function(event) {
             event.preventDefault();
+
+            const btn = document.getElementById("btn-enviar");
+            btn.disabled = true;             // trava o botão
+            btn.innerText = "Aguarde...";   // muda o texto
 
             const nome = document.getElementById("nome").value;
             const insta = document.getElementById("insta").value;
@@ -41,25 +45,30 @@
             console.log("NOME:", nome);
             console.log("INSTA:", insta);
 
+            try {
+                const resp = await fetch("http://localhost:3000/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nome, insta })
+                });
 
-            const resp = await fetch("http://localhost:3000/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, insta })
-            });
+                const data = await resp.json();
+                console.log(data);
 
-            const data = await resp.json();
-            console.log(data);
-
-            if (data.userId) {
-                localStorage.setItem("user_id", data.userId);
-
-                window.location.href = "tela1.html";
-            } else {
-                alert("Erro " + data.error);
+                if (data.userId) {
+                    localStorage.setItem("user_id", data.userId);
+                    window.location.href = "tela1.html"; // só redireciona se sucesso
+                } else {
+                    alert("Erro: " + data.error);
+                    btn.disabled = false;       // libera o botão se houver erro
+                    btn.innerText = "Continuar"; 
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erro de conexão!");
+                btn.disabled = false;           // libera o botão se der erro
+                btn.innerText = "Continuar";
             }
-
-            window.location.href = "tela1.html";
         });
     </script>
 </body>

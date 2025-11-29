@@ -1,32 +1,47 @@
+
 console.log("Javascript funcionando");
 
-        document.getElementById("formulario").addEventListener("submit", async (event) => {
-            event.preventDefault();
+const form = document.getElementById("formulario");
+const btn = document.getElementById("btn-enviar"); // botão do feedback
 
-            const option = document.getElementById("option").value;
+form.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-            const comment = document.getElementById("comment").value;
+    // trava o botão e muda o texto
+    btn.disabled = true;
+    btn.innerText = "Enviando...";
 
-            const user_id = localStorage.getItem("user_id");
+    const option = document.getElementById("option").value;
+    const comment = document.getElementById("comment").value;
+    const user_id = localStorage.getItem("user_id");
 
-            console.log("USER_ID:", user_id);
-            console.log("OPTION:", option);
-            console.log("COMMENT:", comment);
+    console.log("USER_ID:", user_id);
+    console.log("OPTION:", option);
+    console.log("COMMENT:", comment);
 
-            const resp = await fetch("http://localhost:3000/feedback", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id, option, comment })
-            });
-
-            const data = await resp.json();
-            console.log(data);
-
-            if (data.message) {
-                console.log("Feedback enviado!");
-
-                window.location.href = "final.html";
-            } else {
-                alert("Erro: " + data.error);
-            }
+    try {
+        const resp = await fetch("http://localhost:3000/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id, option, comment })
         });
+
+        const data = await resp.json();
+        console.log(data);
+
+        if (data.message) {
+            console.log("Feedback enviado!");
+            window.location.href = "final.html"; // só redireciona se sucesso
+        } else {
+            alert("Erro: " + data.error);
+            btn.disabled = false;       // libera o botão se houver erro
+            btn.innerText = "Enviar Feedback";
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Erro de conexão!");
+        btn.disabled = false;           // libera o botão se der erro
+        btn.innerText = "Enviar Feedback";
+    }
+});
+
